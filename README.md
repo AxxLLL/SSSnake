@@ -1,6 +1,7 @@
 # SSSnake
 Niedokończony...
 
-Projekt 4fun, stworzony w celu nauki podstaw JavaScript.
+Implementacja popularnej gry 'Snake' w JavaScript.
+Projekt stworzony 4fun w celu nauki podstaw JavaScript.
 
 Wykorzystane języki: JavaScript, JQuery
