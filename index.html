@@ -1,0 +1,310 @@
+<html>
+<head>
+    <title>SSSnake</title>'
+    
+    <link rel="stylesheet" href="bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="style.css">
+    <script src="jQuery.js"></script>
+</head>
+<body>
+    <div id="mainFrame"></div>
+    
+    <script>        
+        //======================================
+        const EASY = "EASY";
+        const MEDIUM = "MEDIUM";
+        const HARD = "HARD";
+        //--------------------------------------
+        LEVEL = []; //Values below are time in MS to refresh snake
+        LEVEL[EASY] = 500;
+        LEVEL[MEDIUM] = 250;
+        LEVEL[HARD] = 100;
+        var userLevel = EASY;
+        //--------------------------------------
+        const mainFrame = $('#mainFrame');
+        //--------------------------------------
+        const ROWS = 11;
+        const COLS = 10;
+        var snake = [];
+        var snakeTail = [];
+        var snakeLength = 0;
+        var snakePart = [];
+        var gameTimer = null;
+        //--------------------------------------
+        const DIR_UP = 0;
+        const DIR_DOWN = 2;
+        const DIR_LEFT = 3;
+        const DIR_RIGHT = 4;
+        var userDir = DIR_UP;
+        var previousDir = userDir;
+        var partPosition = [];
+        //--------------------------------------
+        const POOL_EMPTY = 0;
+        const POOL_SNAKE = 1;
+        const POOL_PART = 2;
+        //--------------------------------------
+        const END_USER_BACK = 0;
+        const END_HIT_BOX = 1;
+        const END_EAT_SNAKE = 2;
+        const END_WINNER = 3;
+        //======================================       
+        function openMainMenu() {
+            drawMainMenu();
+            $('#newGame').click(function() {startNewGame()});               
+            $('#selectLevel').click(function() {openLevelSelectMenu()});               
+        }
+        //--------------------------------------
+        function drawMainMenu() {
+            clearAll();
+            mainFrame.html('<div id="mainMenu" class="cod-md-12">');
+            mainFrame.append('<ul>')
+            mainFrame.append('<li id="newGame" class="menuOption">Nowa gra</li>');
+            mainFrame.append('<li id="selectLevel" class="menuOption">Poziom trudności: '+userLevel+'</li>');
+            mainFrame.append('</ul>')
+            mainFrame.append('</div>');
+        }
+        //======================================
+        function openLevelSelectMenu() {
+            drawLevelSelectMenu();
+            $('#levelEasy').click(function() {selectLevel(EASY)});
+            $('#levelMedium').click(function() {selectLevel(MEDIUM)});
+            $('#levelHard').click(function() {selectLevel(HARD)});
+            $('#backBtn').click(function() {openMainMenu()});
+        }
+        //--------------------------------------
+        function drawLevelSelectMenu() {
+            clearAll();
+            mainFrame.html('<div id="levelMenu" class="col-md-12">');
+            mainFrame.append('<ul>')
+            mainFrame.append('<li id="levelEasy" class="menuOption">'+EASY+'</li>');
+            mainFrame.append('<li id="levelMedium" class="menuOption">'+MEDIUM+'</li>');
+            mainFrame.append('<li id="levelHard" class="menuOption">'+HARD+'</li>');
+            mainFrame.append('<li id="backBtn" class="menuOption"><- Wróć</li>');
+            mainFrame.append('</ul>')
+            mainFrame.append('</div>');         
+        }
+        //--------------------------------------
+        function selectLevel(level) {
+            userLevel = level;
+            openMainMenu();
+        }       
+        //======================================
+        function startNewGame() {
+            addButtonTriggers();
+            drawBoard();
+            putSnake();
+            boardEvents();
+        }
+        //--------------------------------------
+        function addButtonTriggers() {
+            $(document).keypress(function (event) {
+                var key = event.which;
+                if(key == 32) { //Space - Pause/Start
+                    if(gameTimer == null) moveSnake();
+                    else {
+                        clearTimeout(gameTimer);
+                        gameTimer = null;
+                    }
+                } else {
+                    if(gameTimer == null) return;
+                    else if(key == 97 || key == 52) {
+                        if(previousDir != DIR_RIGHT) {
+                            userDir = DIR_LEFT; //A or num. 4
+                        }
+                    }
+                    else if(key == 100 || key == 54) {
+                        if(previousDir != DIR_LEFT) {
+                            userDir = DIR_RIGHT; //d or num. 6
+                        }
+                    }
+                    else if(key == 119 || key == 56) {
+                        if(previousDir != DIR_DOWN) {
+                            userDir = DIR_UP; //w or num. 8
+                        }
+                    }
+                    else if(key == 115 || key == 50) {
+                        if(previousDir != DIR_UP) {
+                            userDir = DIR_DOWN; //s or num. 2
+                        }
+                    } 
+                }
+            });
+        }
+        //--------------------------------------
+        function removeButtonTriggers() {
+            $(document).unbind('keypress');
+        }
+        //--------------------------------------
+        function boardEvents() {
+            $('#backToMainMenu').click(function() {
+                openMainMenu();
+                gameEnd();
+            });
+        }
+        //--------------------------------------
+        function drawBoard() {
+            clearAll();
+            var htmlCode = "<div id='backToMainMenu' class='md-col-12 menuOption'>Wróć do menu</div>" +
+                "<div id='backToMainMenu' class='md-col-12'><h6>Wciśnij spację żeby wznowić/zatrzymać grę!</h6></div>";
+            var bootstrap_rest = (12 - COLS);
+            for(var row = 0; row < ROWS; row ++) {
+                htmlCode += "<div class='row'>";
+                for(var col = 0; col < COLS; col ++) {
+                    htmlCode += "<div id='snake_board_"+row+"_"+col+"' class='col-md-1'></div>";
+                }
+                if(bootstrap_rest > 0) {
+                    htmlCode += "<div id='bootstrap_rest_"+row+"' class='col-md-"+bootstrap_rest+"'></div>"
+                }
+                htmlCode += "</div>";
+            }
+            mainFrame.append(htmlCode);
+        }
+        //--------------------------------------
+        function putSnake() {
+            for(var i = 0; i < ROWS*COLS; i ++) {
+                snake[i] = [];
+                snake[i][0] = -1;
+                snake[i][1] = -1;
+            }
+            snake[0][0] = 5;
+            snake[0][1] = 5;
+            snake[1][0] = 5;
+            snake[1][1] = 6;            
+            snake[2][0] = 5;
+            snake[2][1] = 7;   
+            snakeLength = 3;
+            userDir = DIR_UP;
+            previousDir = userDir;
+            updateBoard();
+            putSnakePartOnMap();
+        }
+        //--------------------------------------
+        function moveSnake() {
+            var position = moveSnakeHead();
+            if(position != null) {
+
+                snakeTail[0] = snake[snakeLength - 1][0];
+                snakeTail[1] = snake[snakeLength - 1][1];
+
+                for(var i = snakeLength - 1; i > 0; i --) {
+                    snake[i][0] = snake[i - 1][0];
+                    snake[i][1] = snake[i - 1][1];
+                }
+                
+                snake[0][0] = position[0];
+                snake[0][1] = position[1];
+                updateBoard();
+
+                checkIfSnakeEatHimself(position[0], position[1]);      
+                checkIfSnakeEatPart(position[0], position[1]);
+
+                previousDir = userDir;
+                gameTimer = setTimeout('moveSnake()', LEVEL[userLevel]);
+            }
+        }
+        //--------------------------------------
+        function updateBoard() {
+            for(var row = 0; row < ROWS; row ++) {
+                for(var col = 0; col < COLS; col ++) {
+                       $('#snake_board_'+row+'_'+col+'').css('background', '');
+                }
+            }
+            
+            for(var i = 0; i < ROWS * COLS; i ++) {
+                if(snake[i][0] != -1) {
+                    $('#snake_board_'+snake[i][1]+'_'+snake[i][0]+'').css('background', 'black');
+                }
+            } 
+            
+            if(snakePart[0] != null) {
+                $('#snake_board_'+snakePart[0]+'_'+snakePart[1]+'').css('background', 'black');
+            }
+        }
+        //--------------------------------------
+        function putSnakePartOnMap() {
+            var possiblePoints = [];
+            var index = 0;
+            for(var row = 0; row < ROWS; row ++) {
+                for(var col = 0; col < COLS; col ++) {
+                    if($('#snake_board_'+row+'_'+col+'').css('background-color').localeCompare('rgba(0, 0, 0, 0)') == 0) {
+                        possiblePoints[index] = [];
+                        possiblePoints[index][0] = row;
+                        possiblePoints[index][1] = col;
+                        index ++;
+                    }
+                }
+            }
+            
+            if(index > 0) {
+                var rand = Math.floor(Math.random() * index);
+                snakePart[0] = possiblePoints[rand][0]; 
+                snakePart[1] = possiblePoints[rand][1];
+            } else gameEnd(END_WINNER);
+        }
+        //--------------------------------------
+        function checkIfSnakeEatPart(headX, headY) {
+            if(headX == snakePart[1] && headY == snakePart[0]) {
+                snake[snakeLength][0] = snakeTail[0];
+                snake[snakeLength][1] = snakeTail[1];
+                snakeLength ++;
+                updateBoard();
+                putSnakePartOnMap();
+            }
+        }
+        //--------------------------------------
+        function checkIfSnakeEatHimself(headX, headY) {
+             for(var i = 1; i < snakeLength; i ++) {
+                if(snake[i][0] == headX && snake[i][1] == headY) {
+                    gameEnd(END_EAT_SNAKE);
+                    return;
+                } 
+            }              
+        }
+        //--------------------------------------
+        function checkIfSnakeHitBox(headX, headY) {
+            return (headX < 0 || headX >= ROWS) || (headY < 0 || headY >= COLS);
+        }
+        //--------------------------------------
+        function moveSnakeHead() {
+            var head_x = snake[0][0];
+            var head_y = snake[0][1];
+            
+            switch(userDir) {
+                case DIR_UP: 
+                    --head_y;
+                    break;
+                case DIR_DOWN: 
+                    ++head_y;
+                    break;
+                case DIR_LEFT: 
+                    --head_x;
+                    break;
+                case DIR_RIGHT: 
+                    ++head_x;
+                    break;
+            }
+            if(checkIfSnakeHitBox(head_x, head_y)) {
+                gameEnd(END_HIT_BOX);
+                return null;
+            } 
+            var position = [];
+            position[0] = head_x;
+            position[1] = head_y;
+            return position;
+        }        
+        //--------------------------------------
+        function gameEnd(reason) {
+            clearTimeout(gameTimer);
+            removeButtonTriggers();
+        }
+        //======================================
+        function clearAll() {
+            mainFrame.html('');
+        }
+        //--------------------------------------
+        $(document).ready(function() {
+            openMainMenu();
+        });
+    </script>
+</body>
+</html>
