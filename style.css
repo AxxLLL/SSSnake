@@ -24,6 +24,10 @@ li {
     clear: both;
 }
 
+.game-info-label {
+    font-size: 12px;
+}
+
 .board-row {
     clear:both;
     max-width: 500px;
@@ -47,7 +51,6 @@ li {
 .empty-element {
     background: white;
 }
-
 
 .menu-option {
 	cursor: pointer;
