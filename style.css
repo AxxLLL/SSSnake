@@ -6,6 +6,14 @@ p {
     color: #005673;
 }
 
+#top {
+    display: flex;
+    justify-content: center;
+    padding: 10 0 10 0;
+    border-bottom: 1px solid #005673;
+    background: rgb(224, 236, 255);
+}
+
 #main-frame {
     margin-top: 50px;
 }

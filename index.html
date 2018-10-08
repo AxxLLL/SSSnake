@@ -8,6 +8,9 @@
     <script src="jQuery.js"></script>
 </head>
 <body>
+    <div id="top">
+        <img src="images/SSSnakeLogo.png" alt="SSSnake!" width=250 height= 50/>
+    </div>
     <div id="main-frame">
     </div>
     <script>      
@@ -526,8 +529,8 @@
             boardHTML += '</div>';
             boardHTML += '<div class="clear"></div>';
             boardHTML += '<div id="other-info">';
-            boardHTML += '    <p class="small-text">Wciśnij spację żeby rozpocząć/zatrzymać grę</p>';
-            boardHTML += '    <p class="small-text">Sterowanie W/S/A/D lub klawiatura numeryczna 8/2/4/6</p>';
+            boardHTML += '    <p class="small-text">Wciśnij <span class="important">spację</span> żeby rozpocząć/zatrzymać grę</p>';
+            boardHTML += '    <p class="small-text">Sterowanie <span class="important">W/S/A/D</span> lub klawiatura numeryczna <span class="important">8/2/4/6</span></p>';
             boardHTML += '</div>';                
             mainFrame.append(boardHTML);
         }
