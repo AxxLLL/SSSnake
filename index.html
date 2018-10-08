@@ -12,7 +12,7 @@
     </div>
     <script>        
         //======================================
-        //-------------- CLASSES  --------------
+        //------------- MAP-SIZE  --------------
         //====================================== 
         class MapSize {            
             constructor(name, rows, cells) {
@@ -33,36 +33,44 @@
                 return this.cells;
             }
         }        
+        //--------------------------------------
+        const MAP_SIZE = [];
+        MAP_SIZE[0] = new MapSize("Mała", 6, 8);
+        MAP_SIZE[1] = new MapSize("Średnia", 10, 12);
+        MAP_SIZE[2] = new MapSize("Duża", 20, 24);   
+        MAP_SIZE[3] = new MapSize("Ogromna", 30, 30);   
+        //--------------------------------------
+        var userMap = MAP_SIZE[1];   
         //======================================
-        const MAP_SMALL = 0;
-        const MAP_MEDIUM = 1;
-        const MAP_BIG = 2;
-        const MAP_VERY_BIG = 3; 
+        //--------------- LEVEL ----------------
+        //====================================== 
+        class UserLevel {
+            constructor(name, timeMS) {
+                this.name = name;
+                this.time = timeMS;
+            }
+            
+            getTime() {
+                return this.time;
+            }
+            
+            getName() {
+                return this.name;
+            }
+        }
         //--------------------------------------
-        var MAP_SIZE = [];
-        MAP_SIZE[MAP_SMALL] = new MapSize("Mała", 6, 8);
-        MAP_SIZE[MAP_MEDIUM] = new MapSize("Średnia", 10, 12);
-        MAP_SIZE[MAP_BIG] = new MapSize("Duża", 20, 24);   
-        MAP_SIZE[MAP_VERY_BIG] = new MapSize("Ogromna", 30, 30);   
-        //--------------------------------------
-        var userMap = MAP_SIZE[MAP_MEDIUM];   
+        const LEVEL = [];
+        LEVEL[0] = new UserLevel("n00b", 1000);
+        LEVEL[1] = new UserLevel("Łatwy", 500);
+        LEVEL[2] = new UserLevel("Średni", 250);
+        LEVEL[3] = new UserLevel("Ciężki", 100);
+        LEVEL[4] = new UserLevel("Bardzo ciężki", 75);
+        LEVEL[5] = new UserLevel("IMPOSSIBRU!", 20);
+        //-------------------------------------
+        var userLevel = LEVEL[2];
         //======================================
-        const NOOB = "n00b";
-        const EASY = "Łatwy";
-        const MEDIUM = "Średni";
-        const HARD = "Ciężki";
-        const VERY_HARD = "Bardzo ciężki";
-        const IMPOSSIBRU = "IMPOSSIBRU!";     
         //--------------------------------------
-        const LEVEL = []; //Values below are time in MS to refresh snake
-        LEVEL[NOOB] = 1000;
-        LEVEL[EASY] = 500;
-        LEVEL[MEDIUM] = 250;
-        LEVEL[HARD] = 100;
-        LEVEL[VERY_HARD] = 75;
-        LEVEL[IMPOSSIBRU] = 20;        
-        var userLevel = IMPOSSIBRU;
-        //--------------------------------------
+        //====================================== 
         const mainFrame = $('#main-frame');
         //--------------------------------------
         const ROW_INDEX = 0;
@@ -135,7 +143,7 @@
         function mainTimer() {
             if(!moveSnake()) return;
             refreshGameBoard();
-            gameTimer = setTimeout("mainTimer()", LEVEL[userLevel]);
+            gameTimer = setTimeout("mainTimer()", userLevel.getTime());
         }
         //--------------------------------------
         function moveSnake() {
@@ -347,13 +355,9 @@
         }        
         //--------------------------------------
         function addLevelMenuTriggers() {
-            $('#level-n00b').click(function() {selectLevel(NOOB)});
-            $('#level-easy').click(function() {selectLevel(EASY)});
-            $('#level-medium').click(function() {selectLevel(MEDIUM)});
-            $('#level-hard').click(function() {selectLevel(HARD)});
-            $('#level-veryhard').click(function() {selectLevel(VERY_HARD)});
-            $('#level-impossibru').click(function() {selectLevel(IMPOSSIBRU)});
-            
+            LEVEL.forEach(function(item, index) {
+                $('#level-'+index+'').click(function() {selectLevel(index)});
+            });            
         }      
         //--------------------------------------
         function addMapSizeMenuTriggers() {
@@ -367,7 +371,7 @@
         }
         //--------------------------------------
         function selectLevel(level) {
-            userLevel = level;
+            userLevel = LEVEL[level];
             openMainMenu();
         }
         //--------------------------------------
@@ -409,9 +413,9 @@
         }
         //--------------------------------------
         function showMainMenu() {
-            $('#select-level').html('Poziom trudności: '+userLevel);
+            $('#select-level').html('Poziom trudności: '+userLevel.getName());
+            $('#game-infos').html('Wybrany poziom: '+userLevel.getName());
             $('#map-size').html('Rozmiar mapy: '+userMap.getName());
-            $('#game-infos').html('Wybrany poziom: '+userLevel);
             $('#map-size-infos').html('Rozmiar mapy: '+userMap.getName());
             $('#main-menu').show();
         }
@@ -468,13 +472,14 @@
         function drawLevelSelectMenu() {
             var levelSelectHTML = '<div id="level-menu">';
             levelSelectHTML += '<ul>';
-            levelSelectHTML += '<li id="level-n00b" class="menu-option menu-item-special">Wybierz poziom trudności</li>';
-            levelSelectHTML += '<li id="level-n00b" class="menu-option">'+NOOB+'</li>';
-            levelSelectHTML += '<li id="level-easy" class="menu-option">'+EASY+'</li>';
-            levelSelectHTML += '<li id="level-medium" class="menu-option">'+MEDIUM+'</li>';
-            levelSelectHTML += '<li id="level-hard" class="menu-option">'+HARD+'</li>';
-            levelSelectHTML += '<li id="level-veryhard" class="menu-option">'+VERY_HARD+'</li>';
-            levelSelectHTML += '<li id="level-impossibru" class="menu-option">'+IMPOSSIBRU+'</li>';
+            levelSelectHTML += '<li class="menu-option menu-item-special">Wybierz poziom trudności</li>';
+            
+            LEVEL.forEach(function(item, index) {
+                levelSelectHTML += '<li id="level-'+index+'" class="menu-option menu-item-special">';
+                levelSelectHTML += item.getName();
+                levelSelectHTML += '</li>';
+            });
+        
             levelSelectHTML += '<li class="back-btn menu-option menu-item-special">Wróć</li>';
             levelSelectHTML += '</ul>';
             levelSelectHTML += '</div>';  
