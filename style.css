@@ -1,43 +1,59 @@
-#main-frame {
-    position: fixed;
-    left: 30%;
+#main-menu, #level-menu {
+    display: flex;
+    justify-content: center;
 }
 
-#main-menu {
-
+ul {
+    list-style-type: none;
+    max-width: 500px;
+    min-width: 400px;
 }
 
-li {
-    margin-top: 15px;
+ul > li {
+    border-top: 1px solid rgb(200, 200, 200);
+    border-left: 1px solid rgb(200, 200, 200);
+    border-right: 1px solid rgb(200, 200, 200);
+    padding: 10px;
+    text-align: center;
+    background: rgb(224, 236, 255);
 }
 
-#board {
-    margin-top: 30px;
-    margin-bottom: 30px;
+ul > li:last-child {
+    border-bottom: 1px solid rgb(200, 200, 200);
 }
 
-#game-status-label {
-
+.menu-item-special {
+    background: rgb(198, 220, 255);
 }
 
-#game-infos {
+.other-info {
     clear: both;
-}
-
-.game-info-label {
-    font-size: 12px;
+    font-size: 10px !important;
+    background: rgb(240, 240, 240);
+    text-align: center; 
 }
 
 .board-row {
-    clear:both;
-    max-width: 500px;
+    display: flex;
+    justify-content: center;
+}
+
+#game-menu {
+    display: flex;
+    justify-content: flex-end;
+}
+
+#restart-game {
+    padding: 10px;
+    font-weight:bold;
+    text-align: center;
 }
 
 .board-cell {
-    float:left;
+    float: left;
     width: 20px;
     height: 20px;
-    border: 1px solid grey;
+    border: 1px solid rgb(150, 150, 150);
 }
 
 .snake-part-element {
@@ -54,4 +70,12 @@ li {
 
 .menu-option {
 	cursor: pointer;
+}
+
+.normal-text {
+    font-size: 16px;
+}
+
+.small-text {
+    font-size: 14px;
 }
