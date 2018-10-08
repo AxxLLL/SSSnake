@@ -10,7 +10,7 @@
 <body>
     <div id="main-frame">
     </div>
-    <script>        
+    <script>      
         //======================================
         //------------- MAP-SIZE  --------------
         //====================================== 
@@ -132,9 +132,9 @@
             resetAllGameData();
             
             switch(reason) {
-                case END_HIT_BOX: showGameStatusLabel("Przegrana: Uderzenie w bandę!"); break;
-                case END_EAT_SNAKE: showGameStatusLabel("Przegrana: Wąż sam się zjadł!"); break;
-                case END_WINNER: showGameStatusLabel("Wygrana: Wąż zjadł wszystkie smakołyki!"); break;
+                case END_HIT_BOX: showGameStatusLabel("Przegrana: <span style='color:red'>Uderzenie w bandę!</span>"); break;
+                case END_EAT_SNAKE: showGameStatusLabel("Przegrana: <span style='color:red'>Wąż sam się zjadł!</span>"); break;
+                case END_WINNER: showGameStatusLabel("Wygrana: <span style='color:green'>Wąż zjadł wszystkie smakołyki!</span>"); break;
             }           
             
             return true;
@@ -402,10 +402,12 @@
         //======================================    
         function hideGameBoard() {
             $('#game-board').hide();
+            $('#other-info').hide();
         }
         //--------------------------------------
         function showGameBoard() {
             $('#game-board').show();
+            $('#other-info').show();
         }
         //--------------------------------------
         function hideMainMenu() {
@@ -413,10 +415,10 @@
         }
         //--------------------------------------
         function showMainMenu() {
-            $('#select-level').html('Poziom trudności: '+userLevel.getName());
-            $('#game-infos').html('Wybrany poziom: '+userLevel.getName());
-            $('#map-size').html('Rozmiar mapy: '+userMap.getName());
-            $('#map-size-infos').html('Rozmiar mapy: '+userMap.getName());
+            $('#select-level').html('Poziom trudności: <span class="not-important">'+userLevel.getName()+"</span>");
+            $('#game-infos').html('<span class="important">Wybrany poziom:</span> '+userLevel.getName());
+            $('#map-size').html('Rozmiar mapy:<span class="not-important"> '+userMap.getName()+"</span>");
+            $('#map-size-infos').html('<span class="important">Rozmiar mapy:</span> '+userMap.getName());
             $('#main-menu').show();
         }
         //--------------------------------------
@@ -438,14 +440,13 @@
         //--------------------------------------
         function showGameStatusLabel(label) {
             $('#game-status-label').html(label);
-            $('#restart-game').show();
             $('#game-status-label').show();
+            $('#restart-game').show();
         }
          //--------------------------------------
-        function hideGameStatusLabel(label) {
+        function hideGameStatusLabel() {
             $('#game-status-label').hide();
             $('#restart-game').hide();
-            //removeRestartGameTriggers();
         }        
         //--------------------------------------
         function hideAll() {
@@ -461,9 +462,9 @@
         function drawMainMenu() {
             var mainFrameHTML = '<div id="main-menu" class="menu">';
             mainFrameHTML += '<ul>';
-            mainFrameHTML += '<li id="new-game" class="menu-option menu-item-special">Nowa gra</li>';
-            mainFrameHTML += '<li id="select-level" class="menu-option menu-item-special">Poziom trudności</li>';
-            mainFrameHTML += '<li id="map-size" class="menu-option menu-item-special">Rozmiar mapy</li>';
+            mainFrameHTML += '<li id="new-game" class="menu-option menu-item-special"><span class="important">Nowa gra</span></li>';
+            mainFrameHTML += '<li id="select-level" class="menu-option menu-item-special important"><span class="important">Poziom trudności</span></li>';
+            mainFrameHTML += '<li id="map-size" class="menu-option menu-item-special important"><span class="important">Rozmiar mapy</span></li>';
             mainFrameHTML += '</ul>';
             mainFrameHTML += '</div>';
             mainFrame.append(mainFrameHTML);
@@ -480,7 +481,7 @@
                 levelSelectHTML += '</li>';
             });
         
-            levelSelectHTML += '<li class="back-btn menu-option menu-item-special">Wróć</li>';
+            levelSelectHTML += '<li class="back-btn menu-option menu-item-special important">Wróć</li>';
             levelSelectHTML += '</ul>';
             levelSelectHTML += '</div>';  
             mainFrame.append(levelSelectHTML);
@@ -495,7 +496,7 @@
                 levelSelectHTML += item.getName();
                 levelSelectHTML += '</li>';
             });
-            levelSelectHTML += '<li class="back-btn menu-option menu-item-special">Wróć</li>';
+            levelSelectHTML += '<li class="back-btn menu-option menu-item-special important">Wróć</li>';
             levelSelectHTML += '</ul>';
             levelSelectHTML += '</div>';  
             mainFrame.append(levelSelectHTML);
@@ -507,26 +508,27 @@
             boardHTML += '<div id="game-board">';
             boardHTML += '      <div id="game-interface">';
             boardHTML += '          <div id="game-menu" class="col-md-3">';
-            boardHTML += '              <p id="back-to-main-menu" class="menu-option normal-text">Wróć do menu głównego</p>';
+            boardHTML += '              <p id="back-to-main-menu" class="menu-option normal-text important">Wróć do menu głównego</p>';
             boardHTML += '          </div>';
             boardHTML += '          <div id="board-section" class="col-md-6">';
             boardHTML += '              <div id="board">';
             boardHTML +=                    drawSnakeBoard();
             boardHTML += '              </div>';
-            boardHTML += '              <p id="restart-game" class="menu-option normal-text">Zacznij nową grę</p>';
+            boardHTML += '              <p id="restart-game" class="menu-option normal-text">Zacznij nową grę!</p>';
             boardHTML += '          </div>';
             boardHTML += '          <div id="game-info" class="col-md-3 normal-text">';
             boardHTML += '              <p id="game-infos">Wybrany poziom:</p>';
             boardHTML += '              <p id="map-size-infos">Wybrany poziom:</p>';
             boardHTML += '              <p id="game-points">Punkty:</p>';       
-            boardHTML += '              <div id="game-status-label" class="normal-text"></div>';
+            boardHTML += '              <p id="game-status-label" class="normal-text important"></p>';
             boardHTML += '          </div>';            
-            boardHTML += '      </div>';
-            boardHTML += '      <div class="other-info">';
-            boardHTML += '          <p class="small-text">Wciśnij spację żeby rozpocząć/zatrzymać grę</p>';
-            boardHTML += '          <p class="small-text">Sterowanie W/S/A/D lub klawiatura numeryczna 8/2/4/6</p>';
-            boardHTML += '      </div>';               
+            boardHTML += '      </div>';           
             boardHTML += '</div>';
+            boardHTML += '<div class="clear"></div>';
+            boardHTML += '<div id="other-info">';
+            boardHTML += '    <p class="small-text">Wciśnij spację żeby rozpocząć/zatrzymać grę</p>';
+            boardHTML += '    <p class="small-text">Sterowanie W/S/A/D lub klawiatura numeryczna 8/2/4/6</p>';
+            boardHTML += '</div>';                
             mainFrame.append(boardHTML);
         }
         //--------------------------------------
@@ -537,7 +539,7 @@
             for(var i = 0; i < snakeLength; i ++) {
                 $('#board-cell-'+snake[i][ROW_INDEX]+'-'+snake[i][COL_INDEX]+'').addClass('snake-element');
             }   
-            $('#game-points').html("Zdobyte punkty: " + userPoints);
+            $('#game-points').html('<span class="important">Zdobyte punkty:</span> ' + userPoints);
         }
         //--------------------------------------
         function drawSnakeBoard() {
