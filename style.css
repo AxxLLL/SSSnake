@@ -1,6 +1,19 @@
-#main-menu, #level-menu {
+.menu {
     display: flex;
     justify-content: center;
+}
+
+.menu-header {
+    background: rgb(198, 220, 255);
+    font-weight: bold;
+}
+
+.menu-item-special {
+    background: rgb(198, 220, 255);
+}
+
+.menu-option {
+	cursor: pointer;
 }
 
 ul {
@@ -22,7 +35,7 @@ ul > li:last-child {
     border-bottom: 1px solid rgb(200, 200, 200);
 }
 
-.menu-item-special {
+#game-board {
     background: rgb(198, 220, 255);
 }
 
@@ -66,10 +79,6 @@ ul > li:last-child {
 
 .empty-element {
     background: white;
-}
-
-.menu-option {
-	cursor: pointer;
 }
 
 .normal-text {

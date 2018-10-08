@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>SSSnake</title>'
+    <title>SSSnake</title>
     
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -459,7 +459,7 @@
         //--------------- DRAWING --------------
         //======================================
         function drawMainMenu() {
-            var mainFrameHTML = '<div id="main-menu">';
+            var mainFrameHTML = '<div id="main-menu" class="menu">';
             mainFrameHTML += '<ul>';
             mainFrameHTML += '<li id="new-game" class="menu-option menu-item-special">Nowa gra</li>';
             mainFrameHTML += '<li id="select-level" class="menu-option menu-item-special">Poziom trudności</li>';
@@ -470,12 +470,12 @@
         }
         //--------------------------------------
         function drawLevelSelectMenu() {
-            var levelSelectHTML = '<div id="level-menu">';
+            var levelSelectHTML = '<div id="level-menu" class="menu">';
             levelSelectHTML += '<ul>';
-            levelSelectHTML += '<li class="menu-option menu-item-special">Wybierz poziom trudności</li>';
+            levelSelectHTML += '<li class="menu-header">Wybierz poziom trudności</li>';
             
             LEVEL.forEach(function(item, index) {
-                levelSelectHTML += '<li id="level-'+index+'" class="menu-option menu-item-special">';
+                levelSelectHTML += '<li id="level-'+index+'" class="menu-option">';
                 levelSelectHTML += item.getName();
                 levelSelectHTML += '</li>';
             });
@@ -487,11 +487,11 @@
         }
         //--------------------------------------
         function drawBoardSizeSelectMenu() {
-            var levelSelectHTML = '<div id="map-size-menu">';
+            var levelSelectHTML = '<div id="map-size-menu" class="menu">';
             levelSelectHTML += '<ul>';
-            levelSelectHTML += '<li class="menu-option menu-item-special">Wybierz rozmiar mapy</li>';
+            levelSelectHTML += '<li class="menu-header">Wybierz rozmiar mapy</li>';
             MAP_SIZE.forEach(function(item, index) {
-                levelSelectHTML += '<li id="mapsize-'+index+'" class="menu-option menu-item-special">';
+                levelSelectHTML += '<li id="mapsize-'+index+'" class="menu-option">';
                 levelSelectHTML += item.getName();
                 levelSelectHTML += '</li>';
             });
