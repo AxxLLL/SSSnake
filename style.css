@@ -1,26 +1,54 @@
-#mainFrame {
-	
+#main-frame {
+    position: fixed;
+    left: 30%;
 }
 
-.row {
-	margin-left: 10px;
-	padding: 0;
+#main-menu {
+
 }
 
-.col-md-1 {
-	margin: 0;
-	padding: 10px;
-	height: 20px;
-	width: 10px;
-	max-height: 10px;
-	max-width: 10px;
-	border: 1px solid grey;
+li {
+    margin-top: 15px;
 }
 
-.menuOption {
-	cursor: hand;
+#board {
+    margin-top: 30px;
+    margin-bottom: 30px;
 }
 
-h6 {
-	font-size: 10px;
+#game-status-label {
+
+}
+
+#game-infos {
+    clear: both;
+}
+
+.board-row {
+    clear:both;
+    max-width: 500px;
+}
+
+.board-cell {
+    float:left;
+    width: 20px;
+    height: 20px;
+    border: 1px solid grey;
+}
+
+.snake-part-element {
+    background: grey !important;
+}
+
+.snake-element {
+    background: black !important;
+}
+
+.empty-element {
+    background: white;
+}
+
+
+.menu-option {
+	cursor: pointer;
 }

@@ -1,35 +1,42 @@
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>SSSnake</title>'
     
-    <link rel="stylesheet" href="bootstrap/dist/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="style.css">
     <script src="jQuery.js"></script>
 </head>
 <body>
-    <div id="mainFrame"></div>
-    
+    <div id="main-frame"></div>
     <script>        
         //======================================
+        const NOOB = "n00b";
         const EASY = "EASY";
         const MEDIUM = "MEDIUM";
         const HARD = "HARD";
+        const VERY_HARD = "VERY HARD";
         //--------------------------------------
         LEVEL = []; //Values below are time in MS to refresh snake
+        LEVEL[NOOB] = 1000;
         LEVEL[EASY] = 500;
         LEVEL[MEDIUM] = 250;
         LEVEL[HARD] = 100;
-        var userLevel = EASY;
+        LEVEL[VERY_HARD] = 75;
+        var userLevel = MEDIUM;
         //--------------------------------------
-        const mainFrame = $('#mainFrame');
+        const mainFrame = $('#main-frame');
         //--------------------------------------
-        const ROWS = 11;
-        const COLS = 10;
+        const ROW_INDEX = 0;
+        const COL_INDEX = 1;
+        const ROWS = 10; //Max board rows
+        const COLS = 8; //Max board cols
+        //--------------------------------------
         var snake = [];
         var snakeTail = [];
         var snakeLength = 0;
         var snakePart = [];
         var gameTimer = null;
+        var userPoints = 0;
         //--------------------------------------
         const DIR_UP = 0;
         const DIR_DOWN = 2;
@@ -37,73 +44,217 @@
         const DIR_RIGHT = 4;
         var userDir = DIR_UP;
         var previousDir = userDir;
-        var partPosition = [];
-        //--------------------------------------
-        const POOL_EMPTY = 0;
-        const POOL_SNAKE = 1;
-        const POOL_PART = 2;
         //--------------------------------------
         const END_USER_BACK = 0;
         const END_HIT_BOX = 1;
         const END_EAT_SNAKE = 2;
         const END_WINNER = 3;
-        //======================================       
-        function openMainMenu() {
+        //======================================
+        //-------------- GAME START ------------
+        //======================================
+        $(document).ready(function() {
             drawMainMenu();
-            $('#newGame').click(function() {startNewGame()});               
-            $('#selectLevel').click(function() {openLevelSelectMenu()});               
-        }
-        //--------------------------------------
-        function drawMainMenu() {
-            clearAll();
-            mainFrame.html('<div id="mainMenu" class="cod-md-12">');
-            mainFrame.append('<ul>')
-            mainFrame.append('<li id="newGame" class="menuOption">Nowa gra</li>');
-            mainFrame.append('<li id="selectLevel" class="menuOption">Poziom trudności: '+userLevel+'</li>');
-            mainFrame.append('</ul>')
-            mainFrame.append('</div>');
-        }
-        //======================================
-        function openLevelSelectMenu() {
             drawLevelSelectMenu();
-            $('#levelEasy').click(function() {selectLevel(EASY)});
-            $('#levelMedium').click(function() {selectLevel(MEDIUM)});
-            $('#levelHard').click(function() {selectLevel(HARD)});
-            $('#backBtn').click(function() {openMainMenu()});
-        }
-        //--------------------------------------
-        function drawLevelSelectMenu() {
-            clearAll();
-            mainFrame.html('<div id="levelMenu" class="col-md-12">');
-            mainFrame.append('<ul>')
-            mainFrame.append('<li id="levelEasy" class="menuOption">'+EASY+'</li>');
-            mainFrame.append('<li id="levelMedium" class="menuOption">'+MEDIUM+'</li>');
-            mainFrame.append('<li id="levelHard" class="menuOption">'+HARD+'</li>');
-            mainFrame.append('<li id="backBtn" class="menuOption"><- Wróć</li>');
-            mainFrame.append('</ul>')
-            mainFrame.append('</div>');         
-        }
-        //--------------------------------------
-        function selectLevel(level) {
-            userLevel = level;
+            drawGameBoard();
+
+            hideAll();
+            
+            addMainMenuTriggers();
+            addLevelMenuTriggers(); 
+            addGameBoardMenuTriggers();
+            
             openMainMenu();
-        }       
+        });
         //======================================
-        function startNewGame() {
+        //------------- GAME UTILS -------------
+        //======================================
+        function startGame() {
+            resetAllGameData();
+            hideAll();
+            showGameBoard();
+            
+            initSnake();
+            initSnakeEatPart();
             addButtonTriggers();
-            drawBoard();
-            putSnake();
-            boardEvents();
+            refreshGameBoard();
+        }
+        //--------------------------------------  
+        function endGame(reason) {
+            resetAllGameData();
+            
+            switch(reason) {
+                case END_HIT_BOX: showGameStatusLabel("Przegrana: Uderzenie w bandę!"); break;
+                case END_EAT_SNAKE: showGameStatusLabel("Przegrana: Wąż sam się zjadł!"); break;
+                case END_WINNER: showGameStatusLabel("Wygrana: Wąż zjadł wszystkie smakołyki!"); break;
+            }           
+            
+            return true;
+        }
+        //--------------------------------------  
+        function mainTimer() {
+            if(!moveSnake()) return;
+            refreshGameBoard();
+            gameTimer = setTimeout("mainTimer()", LEVEL[userLevel]);
         }
         //--------------------------------------
+        function moveSnake() {
+            var headRow = snake[0][ROW_INDEX];
+            var headCol = snake[0][COL_INDEX];
+            
+            snakeTail[ROW_INDEX] = snake[snakeLength - 1][ROW_INDEX];
+            snakeTail[COL_INDEX] = snake[snakeLength - 1][COL_INDEX];
+            previousDir = userDir; 
+            
+            switch(userDir) {
+                case DIR_UP: headRow --; break;
+                case DIR_DOWN: headRow ++; break;
+                case DIR_LEFT: headCol --; break;
+                case DIR_RIGHT: headCol ++; break;
+            }
+            
+            if(checkIfSankeHitBorder(headRow, headCol)) return !endGame(END_HIT_BOX);
+            
+            for(var i = snakeLength - 1; i >= 1; i --) {
+                snake[i][ROW_INDEX] = snake[i - 1][ROW_INDEX];
+                snake[i][COL_INDEX] = snake[i - 1][COL_INDEX];
+            }
+            snake[0][ROW_INDEX] = headRow;
+            snake[0][COL_INDEX] = headCol;
+            
+            if(checkIfSnakeEatPart(headRow, headCol)) {
+                snakeLength ++;
+                userPoints ++;
+                if(!checkIfSnakeHasFields()) return !endGame(END_WINNER);
+                else initSnakeEatPart() == false
+            } else {
+                snake[snakeLength][ROW_INDEX] = -1;
+                snake[snakeLength][COL_INDEX] = -1;
+            }
+            
+            if(checkIfSnakeEatHimself(headRow, headCol)) return !endGame(END_EAT_SNAKE);
+            return true;
+        }
+        //-------------------------------------- 
+        function checkIfSankeHitBorder(headRow, headCol) {
+            return (headRow < 0 || headRow >= ROWS || headCol < 0 || headCol >= COLS);
+        }
+        //-------------------------------------- 
+        function checkIfSnakeEatPart(headRow, headCol) {
+            return (snakePart[ROW_INDEX] == headRow && snakePart[COL_INDEX] == headCol);
+        }
+        //-------------------------------------- 
+        function checkIfSnakeEatHimself(headRow, headCol) {
+            for(var i = 1; i < snakeLength; i ++) {
+                if(snake[i][ROW_INDEX] == snake[0][ROW_INDEX] && snake[i][COL_INDEX] == snake[0][COL_INDEX]) return true;
+            }
+            return false;
+        }
+        //-------------------------------------- 
+        function checkIfSnakeHasFields() {
+            return ((snakeLength - 1) != (COLS * ROWS));
+        }
+        //-------------------------------------- 
+        function resetAllGameData() {
+            killGameTimer();
+            resetSnakePosition();
+            resetSnakeEatParts();
+            resetUserDirValue();
+            removeButtonTriggers();
+            userPoints = 0;
+        }
+        //--------------------------------------        
+        function resetSnakePosition() {
+            for(var i = 0; i < ROWS*COLS; i ++) {
+                snake[i] = [];
+                snake[i][ROW_INDEX] = -1;
+                snake[i][COL_INDEX] = -1;
+            }
+            snakeTail[ROW_INDEX] = -1;
+            snakeTail[COL_INDEX] = -1;
+            snakeLength = 0;  
+        }        
+        //--------------------------------------
+        function resetSnakeEatParts() {
+            snakePart[ROW_INDEX] = -1;
+            snakePart[COL_INDEX] = -1;
+        }
+        //--------------------------------------
+        function resetUserDirValue() {
+            userDir = DIR_UP;
+            previousDir = userDir;
+        }
+        //--------------------------------------
+        function killGameTimer() {
+            if(gameTimer != null) {
+                clearTimeout(gameTimer);
+                gameTimer = null;
+            }
+        }
+        //--------------------------------------    
+        function initSnake() {
+            var headX = Math.floor(ROWS / 2);
+            var headY = Math.floor(COLS / 2);
+            var length = ((COLS - headY >= 3) ? 3 : (COLS - headY));
+            
+            for(var i = 0; i < length; i ++) {
+                snake[i][ROW_INDEX] = headX + i;
+                snake[i][COL_INDEX] = headY;
+            }
+            
+            snakeLength = length;
+        }
+        //--------------------------------------    
+        function initSnakeEatPart() {
+            var availableCells = [];
+            var index = 0;
+            var cellTemp = [];
+            
+            for(var i = 0; i < ROWS; i ++) {
+                for(var x = 0; x < COLS; x ++) {
+                    var fieldNum = (i * COLS) + (x + 1);
+                    console.log(fieldNum);
+                    cellTemp[fieldNum] = true;
+                }
+            }
+            
+            for(var i = 0, row_index, col_index, fieldNum; i < snakeLength; i ++) {
+                row_index = snake[i][ROW_INDEX];
+                col_index = snake[i][COL_INDEX];
+                fieldNum = (row_index * COLS) + (col_index + 1);
+                cellTemp[fieldNum] = false;  
+                //console.log("Snake at: " + fieldNum + " ("+(row_index - 1)+"|"+(col_index - 1)+")");
+            }            
+            
+            for(var i = 0; i < cellTemp.length; i ++) {
+                if(cellTemp[i] == true) {
+                    availableCells[index ++] = i;
+                }
+            }
+            
+            if(index > 0) {
+                var rand = availableCells[Math.floor(Math.random() * index)];
+                var calcX = Math.ceil((rand) / COLS) - 1;
+                var calcY = (rand - 1) - (calcX * COLS);
+
+                snakePart[ROW_INDEX] = calcX;
+                snakePart[COL_INDEX] = calcY;
+                return true;
+            }
+            
+            return false;
+        }
+        //-------------------------------------- 
+        function removeButtonTriggers() {
+            $(document).unbind('keypress');
+        }
+        //-------------------------------------- 
         function addButtonTriggers() {
             $(document).keypress(function (event) {
                 var key = event.which;
                 if(key == 32) { //Space - Pause/Start
-                    if(gameTimer == null) moveSnake();
+                    if(gameTimer == null) mainTimer();
                     else {
-                        clearTimeout(gameTimer);
-                        gameTimer = null;
+                        killGameTimer();
                     }
                 } else {
                     if(gameTimer == null) return;
@@ -130,181 +281,166 @@
                 }
             });
         }
-        //--------------------------------------
-        function removeButtonTriggers() {
-            $(document).unbind('keypress');
+        //======================================
+        //-------------- MENU UTILS ------------
+        //====================================== 
+        function openMainMenu() {
+            hideAll();
+            showMainMenu();
         }
         //--------------------------------------
-        function boardEvents() {
-            $('#backToMainMenu').click(function() {
+        function addMainMenuTriggers() {
+            $('#new-game').click(function() {startGame()});               
+            $('#select-level').click(function() {openLevelSelectMenu()});  
+        }
+        //--------------------------------------
+        function openLevelSelectMenu() {
+            hideAll();
+            showLevelSelectMenu();
+        }
+        //--------------------------------------
+        function addLevelMenuTriggers() {
+            $('#level-n00b').click(function() {selectLevel(NOOB)});
+            $('#level-easy').click(function() {selectLevel(EASY)});
+            $('#level-medium').click(function() {selectLevel(MEDIUM)});
+            $('#level-hard').click(function() {selectLevel(HARD)});
+            $('#level-veryhard').click(function() {selectLevel(VERY_HARD)});
+            $('#back-btn').click(function() {openMainMenu()});
+        }      
+        //--------------------------------------
+        function selectLevel(level) {
+            userLevel = level;
+            openMainMenu();
+        }
+        //--------------------------------------
+        function addGameBoardMenuTriggers() {
+            $('#back-to-main-menu').click(function() {
+                endGame(END_USER_BACK);
                 openMainMenu();
-                gameEnd();
-            });
-        }
-        //--------------------------------------
-        function drawBoard() {
-            clearAll();
-            var htmlCode = "<div id='backToMainMenu' class='md-col-12 menuOption'>Wróć do menu</div>" +
-                "<div id='backToMainMenu' class='md-col-12'><h6>Wciśnij spację żeby wznowić/zatrzymać grę!</h6></div>";
-            var bootstrap_rest = (12 - COLS);
-            for(var row = 0; row < ROWS; row ++) {
-                htmlCode += "<div class='row'>";
-                for(var col = 0; col < COLS; col ++) {
-                    htmlCode += "<div id='snake_board_"+row+"_"+col+"' class='col-md-1'></div>";
-                }
-                if(bootstrap_rest > 0) {
-                    htmlCode += "<div id='bootstrap_rest_"+row+"' class='col-md-"+bootstrap_rest+"'></div>"
-                }
-                htmlCode += "</div>";
-            }
-            mainFrame.append(htmlCode);
-        }
-        //--------------------------------------
-        function putSnake() {
-            for(var i = 0; i < ROWS*COLS; i ++) {
-                snake[i] = [];
-                snake[i][0] = -1;
-                snake[i][1] = -1;
-            }
-            snake[0][0] = 5;
-            snake[0][1] = 5;
-            snake[1][0] = 5;
-            snake[1][1] = 6;            
-            snake[2][0] = 5;
-            snake[2][1] = 7;   
-            snakeLength = 3;
-            userDir = DIR_UP;
-            previousDir = userDir;
-            updateBoard();
-            putSnakePartOnMap();
-        }
-        //--------------------------------------
-        function moveSnake() {
-            var position = moveSnakeHead();
-            if(position != null) {
-
-                snakeTail[0] = snake[snakeLength - 1][0];
-                snakeTail[1] = snake[snakeLength - 1][1];
-
-                for(var i = snakeLength - 1; i > 0; i --) {
-                    snake[i][0] = snake[i - 1][0];
-                    snake[i][1] = snake[i - 1][1];
-                }
-                
-                snake[0][0] = position[0];
-                snake[0][1] = position[1];
-                updateBoard();
-
-                checkIfSnakeEatHimself(position[0], position[1]);      
-                checkIfSnakeEatPart(position[0], position[1]);
-
-                previousDir = userDir;
-                gameTimer = setTimeout('moveSnake()', LEVEL[userLevel]);
-            }
-        }
-        //--------------------------------------
-        function updateBoard() {
-            for(var row = 0; row < ROWS; row ++) {
-                for(var col = 0; col < COLS; col ++) {
-                       $('#snake_board_'+row+'_'+col+'').css('background', '');
-                }
-            }
-            
-            for(var i = 0; i < ROWS * COLS; i ++) {
-                if(snake[i][0] != -1) {
-                    $('#snake_board_'+snake[i][1]+'_'+snake[i][0]+'').css('background', 'black');
-                }
-            } 
-            
-            if(snakePart[0] != null) {
-                $('#snake_board_'+snakePart[0]+'_'+snakePart[1]+'').css('background', 'black');
-            }
-        }
-        //--------------------------------------
-        function putSnakePartOnMap() {
-            var possiblePoints = [];
-            var index = 0;
-            for(var row = 0; row < ROWS; row ++) {
-                for(var col = 0; col < COLS; col ++) {
-                    if($('#snake_board_'+row+'_'+col+'').css('background-color').localeCompare('rgba(0, 0, 0, 0)') == 0) {
-                        possiblePoints[index] = [];
-                        possiblePoints[index][0] = row;
-                        possiblePoints[index][1] = col;
-                        index ++;
-                    }
-                }
-            }
-            
-            if(index > 0) {
-                var rand = Math.floor(Math.random() * index);
-                snakePart[0] = possiblePoints[rand][0]; 
-                snakePart[1] = possiblePoints[rand][1];
-            } else gameEnd(END_WINNER);
-        }
-        //--------------------------------------
-        function checkIfSnakeEatPart(headX, headY) {
-            if(headX == snakePart[1] && headY == snakePart[0]) {
-                snake[snakeLength][0] = snakeTail[0];
-                snake[snakeLength][1] = snakeTail[1];
-                snakeLength ++;
-                updateBoard();
-                putSnakePartOnMap();
-            }
-        }
-        //--------------------------------------
-        function checkIfSnakeEatHimself(headX, headY) {
-             for(var i = 1; i < snakeLength; i ++) {
-                if(snake[i][0] == headX && snake[i][1] == headY) {
-                    gameEnd(END_EAT_SNAKE);
-                    return;
-                } 
-            }              
-        }
-        //--------------------------------------
-        function checkIfSnakeHitBox(headX, headY) {
-            return (headX < 0 || headX >= ROWS) || (headY < 0 || headY >= COLS);
-        }
-        //--------------------------------------
-        function moveSnakeHead() {
-            var head_x = snake[0][0];
-            var head_y = snake[0][1];
-            
-            switch(userDir) {
-                case DIR_UP: 
-                    --head_y;
-                    break;
-                case DIR_DOWN: 
-                    ++head_y;
-                    break;
-                case DIR_LEFT: 
-                    --head_x;
-                    break;
-                case DIR_RIGHT: 
-                    ++head_x;
-                    break;
-            }
-            if(checkIfSnakeHitBox(head_x, head_y)) {
-                gameEnd(END_HIT_BOX);
-                return null;
-            } 
-            var position = [];
-            position[0] = head_x;
-            position[1] = head_y;
-            return position;
+            });     
         }        
         //--------------------------------------
-        function gameEnd(reason) {
-            clearTimeout(gameTimer);
-            removeButtonTriggers();
-        }
+        function addRestartGameTriggers() {
+            $('#restart-game').click(function() {
+                console.log("Test");
+                startGame();
+            });     
+        }    
+        //--------------------------------------
+        function removeRestartGameTriggers() {
+            $('#restart-game').off('click');
+        }        
         //======================================
-        function clearAll() {
-            mainFrame.html('');
+        //------------ DRAWING UTILS -----------
+        //======================================    
+        function hideGameBoard() {
+            $('#game-board').hide();
         }
         //--------------------------------------
-        $(document).ready(function() {
-            openMainMenu();
-        });
+        function showGameBoard() {
+            $('#game-board').show();
+        }
+        //--------------------------------------
+        function hideMainMenu() {
+            $('#main-menu').hide();
+        }
+        //--------------------------------------
+        function showMainMenu() {
+            $('#select-level').html('Poziom trudności: '+userLevel);
+            $('#game-infos').html('Wybrany poziom: '+userLevel);
+            $('#main-menu').show();
+        }
+        //--------------------------------------
+        function hideLevelSelectMenu() {
+            $('#level-menu').hide();
+        }
+        //--------------------------------------
+        function showLevelSelectMenu() {
+            $('#level-menu').show();
+        }                       
+        //--------------------------------------
+        function showGameStatusLabel(label) {
+            $('#game-status-label').html('<h5>'+label+'</h5><p id="restart-game" class="menu-option">>> Zacznij nową grę <<</p>');
+            addRestartGameTriggers();
+            $('#game-status-label').show();
+        }
+         //--------------------------------------
+        function hideGameStatusLabel(label) {
+            $('#game-status-label').hide();
+            removeRestartGameTriggers();
+        }        
+        //--------------------------------------
+        function hideAll() {
+            hideMainMenu();
+            hideLevelSelectMenu();
+            hideGameBoard();
+            hideGameStatusLabel();
+        }
+        //--------------------------------------
+        function showAll() {
+            showMainMenu();
+            showLevelSelectMenu();
+            showGameBoard();
+        }
+        //======================================
+        //--------------- DRAWING --------------
+        //======================================
+        function drawMainMenu() {
+            var mainFrameHTML = '<div id="main-menu">';
+            mainFrameHTML += '<ul>';
+            mainFrameHTML += '<li id="new-game" class="menu-option">Nowa gra</li>';
+            mainFrameHTML += '<li id="select-level" class="menu-option">Poziom trudności</li>';
+            mainFrameHTML += '</ul>';
+            mainFrameHTML += '</div>';
+            mainFrame.append(mainFrameHTML);
+        }
+        //--------------------------------------
+        function drawLevelSelectMenu() {
+            var levelSelectHTML = '<div id="level-menu">';
+            levelSelectHTML += '<ul>';
+            levelSelectHTML += '<li id="level-n00b" class="menu-option">'+NOOB+'</li>';
+            levelSelectHTML += '<li id="level-easy" class="menu-option">'+EASY+'</li>';
+            levelSelectHTML += '<li id="level-medium" class="menu-option">'+MEDIUM+'</li>';
+            levelSelectHTML += '<li id="level-hard" class="menu-option">'+HARD+'</li>';
+            levelSelectHTML += '<li id="level-veryhard" class="menu-option">'+VERY_HARD+'</li>';
+            levelSelectHTML += '<li id="back-btn" class="menu-option"><- Wróć</li>';
+            levelSelectHTML += '</ul>';
+            levelSelectHTML += '</div>';  
+            mainFrame.append(levelSelectHTML);
+        }
+        //--------------------------------------
+        function drawGameBoard() {
+            var boardHTML = '<div id="game-board">'; 
+            boardHTML += '<div id="game-menu">';
+            boardHTML += '<div id="back-to-main-menu" class="menu-option"><- Wróć do menu głównego</div>';
+            boardHTML += '<div class="game-info-label">Wciśnij spację żeby rozpocząć/zatrzymać grę</div>';
+            boardHTML += '<div id="game-status-label"></div>';
+            boardHTML += '</div>';
+            boardHTML += '<div id="board">';
+            for(var i = 0; i < ROWS; i ++) {
+                boardHTML += '<div id="board-row-'+i+'" class="board-row">';
+                for(var x = 0; x < COLS; x ++) {
+                    boardHTML += '<div id="board-cell-'+i+'-'+x+'" class="board-cell empty-element"></div>';
+                }
+                boardHTML += '</div>';
+            }           
+            boardHTML += '</div>';
+            boardHTML += '<div id="game-infos">Wybrany poziom:</div>';
+            boardHTML += '<div id="game-points">Punkty:</div>';
+            boardHTML += '</div>';
+            mainFrame.append(boardHTML);
+        }
+        //--------------------------------------
+        function refreshGameBoard() {
+            $('.board-cell').removeClass('snake-element');
+            $('.board-cell').removeClass('snake-part-element');
+            $('#board-cell-'+snakePart[ROW_INDEX]+'-'+snakePart[COL_INDEX]+'').addClass('snake-part-element');
+            for(var i = 0; i < snakeLength; i ++) {
+                $('#board-cell-'+snake[i][ROW_INDEX]+'-'+snake[i][COL_INDEX]+'').addClass('snake-element');
+            }   
+            $('#game-points').html("Zdobyte punkty: " + userPoints);
+            
+        }
     </script>
 </body>
 </html>
